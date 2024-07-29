@@ -1,26 +1,110 @@
-ResizeObserver loop completed with undelivered notifications.
-    at handleError (http://localhost:3000/static/js/bundle.js:103812:58)
-    at http://localhost:3000/static/js/bundle.js:103831:7
+SaaHeaderTab.jsx
+------------------
+const SAAHeaderTab = ({treeHeights, tabItem, tabValue, key}) => {
+    const hierSchemaJson = useSelector(getHierSchemaSaaHeader);
+    const treeItemExpandedList = useSelector(getTreeExpandSaaHeader);
+    const resultDataJson = useSelector(getResultBodyDataSaaHeader);
 
-        const MxTabComponent = [
-      {label:'SAA Header', value: 'saaHeader', component: LazySaaHeader}, 
-      {label: 'Application Header', value: 'appHead', component: LazyAppHeader}, 
-      {label:'Body', value: 'body', component : LazyBody}
-    ];
-   <Suspense fallback = {<IconButton sx={{display: 'flex', textAlign: 'center', width: '100%', height: '50vh'}}>
-                  <FadeLoader
-                    color={'#000000'}
-                    loading={true}
-                   // cssOverride={override}
-                    size={100}
-                    aria-label="Loading Spinner"
-                    data-testid="loader"/>
-                </IconButton>} >
+    return (
+        <div
+            role="tabpanel"
+            hidden={!(tabValue === tabItem.value)}
+            id={`full-width-tabpanel-saa`}
+            aria-labelledby={`full-width-tab-saa`}
+        >
+        <ChildTabs tabValue = {tabValue}
+            key = {key} treeHeights = {treeHeights}
+            hierSchemaJson = {hierSchemaJson} treeItemExpandedList = {treeItemExpandedList}
+            resultDataJson = {resultDataJson}
+            />
+        </div>
+    )
+} 
+export default memo(SAAHeaderTab);
+
+AppHeaderTab.jsx
+-----------------
+onst AppHeaderTab = ({treeHeights, tabItem, tabValue, key}) => {
+    const hierSchemaJson = useSelector(getHierSchemaAppHeader);
+    const treeItemExpandedList = useSelector(getTreeExpandAppHeader);
+    const resultDataJson = useSelector(getResultBodyDataAppHeader);
+
+    return (
+        <div
+            role="tabpanel"
+            hidden={!(tabValue === tabItem.value)}
+            id={`full-width-tabpanel-appHead`}
+            aria-labelledby={`full-width-tab-$appHead`}
+        >
+        <ChildTabs tabValue = {tabValue}
+            key = {key} treeHeights = {treeHeights}
+            hierSchemaJson = {hierSchemaJson} treeItemExpandedList = {treeItemExpandedList}
+            resultDataJson = {resultDataJson}
+            />
+        </div>
+    )
+} 
+export default memo(AppHeaderTab);
+
+Action.js
+--------------
+export const getSelectedMXDataByMsgId = () => {
+    return dispatch => {
+            fetch('url')
+            .then(resData => {
+                return resData.json();
+            })
+            .then(responseData => {
+                    const { responseBody = {} } = responseData;
+                    const {enqTxn, data} = responseBody;
+                    const dataJson = convertDataXMLtoJSONWithDeclaration(data);
+                    // this data for load the SaaHeader tab contents for SaaHeader.jsx
+                    dispatch(rewriteDataSaaHeader({enqTxn, jsonData : dataJson}));
+					// Added some delay for load the AppHeader.jsx
+                    setTimeout(() => {
+                        dispatch(rewriteDataAppHeader({enqTxn, jsonData : dataJson}));                 
+                    }, 5)
+                
+            })
+            
+    }
+}
+
+ShowMain.jsx //Main js file
+----------------
+const LazySaaHeader = lazy(() => import('./SaaHeaderTab'));
+const LazyAppHeader = lazy(() => import('./AppHeaderTab'));
+
+	const ShowMxTemplateMain = memo(({fromScreen = SCREEN_NAMES['fromTransaction']}) => {
+		 useEffect(() => {
+			return () => {
+			  actDispatch(getSelectedMXDataByMsgId());
+			}
+		}, [actDispatch]);
+	
+	 return (
+        <Tabs  onChange={handleTabChange}>
+		 {
+		  //Load the tab Title
+		  <Tab label = 'Saa' value = 'saaHeader'/>
+		  <Tab label = 'App' value = 'appHead' />
+		</Tabs>
+		    <Suspense fallback = {
+                  <FadeLoader />
+               }>
+               
                 {
-                  MxTabComponent.map((tabItem, index) => {
-                    return (
-                      <tabItem.component treeHeights={treeHeights} tabValue = {tabValue} tabItem={tabItem} key = {`${tabItem.value}_${tabItem.label}`}/>
-                    )
-                  })
+                  <LazySaaHeader treeHeights={treeHeights} tabValue={tabValue} tabItem={{label:'SAA Header', value: 'saaHeader' }} />
                 }
-   </Suspense>
+                {
+                  <LazyAppHeader treeHeights={treeHeights} tabValue={tabValue} tabItem={{label: 'Application Header', value: 'appHead'}} />
+                }
+                
+             </Suspense>	
+		)
+}
+		
+Actually, I am trying to load the all tab contents but SaaHeaderTab should be load first. Problem is - SaaHeaderTab has loaded first but could not accessible until AppHeader is loaded. 
+Once AppHeaderTab is loaded, then able to access the SaaHeader Tab. If try to load the tab content based on the tab selection, then takes long time to load the data. Thats why,  i have choosed this option.
+My Expectation - SaaHeaderTab will be loaded first and able to accessible. Its enough, if AppHeaderTab will be loaded in background. Helpe me to resolve. 
+		
