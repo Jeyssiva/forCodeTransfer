@@ -1,0 +1,26 @@
+ResizeObserver loop completed with undelivered notifications.
+    at handleError (http://localhost:3000/static/js/bundle.js:103812:58)
+    at http://localhost:3000/static/js/bundle.js:103831:7
+
+        const MxTabComponent = [
+      {label:'SAA Header', value: 'saaHeader', component: LazySaaHeader}, 
+      {label: 'Application Header', value: 'appHead', component: LazyAppHeader}, 
+      {label:'Body', value: 'body', component : LazyBody}
+    ];
+   <Suspense fallback = {<IconButton sx={{display: 'flex', textAlign: 'center', width: '100%', height: '50vh'}}>
+                  <FadeLoader
+                    color={'#000000'}
+                    loading={true}
+                   // cssOverride={override}
+                    size={100}
+                    aria-label="Loading Spinner"
+                    data-testid="loader"/>
+                </IconButton>} >
+                {
+                  MxTabComponent.map((tabItem, index) => {
+                    return (
+                      <tabItem.component treeHeights={treeHeights} tabValue = {tabValue} tabItem={tabItem} key = {`${tabItem.value}_${tabItem.label}`}/>
+                    )
+                  })
+                }
+   </Suspense>
