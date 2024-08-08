@@ -1,8 +1,58 @@
-1. Tell us about something you have built or created.
-I led the Industrial Internet of Things (IIOT) 4.0 project at Kimball Electronics, digitalizing a pharmaceutical factory in Japan. The project involved integrating over 120 machines and real-time data collection using MQTT, InfluxDB, and C#. I oversaw the project from planning to deployment, successfully completing it in April 2021. This project was a key step in enhancing factory efficiency and data management, which had a significant impact on our client’s operations.
 
-2. Tell us about an achievement you are proud of.
-I’m proud of receiving the “Consider it Done” award from Kimball Electronics in August 2022. This recognition was for my leadership in the IIOT 4.0 project for the EMS Automobile Industry, which involved managing complex data systems for AI predictions across multiple international locations. Successfully implementing this project and seeing its impact on global operations was a major accomplishment in my career.
+mycode
+------------
 
-3. Tell us about a challenge you found hard to overcome.
-A challenging task I overcame was managing the RTS and ISO modules at Maybank, where I had to integrate and monitor transactions across multiple banks. The complexity of converting Swift transaction messages into XML and ensuring seamless international transactions was significant. Balancing this with my role as Scrum Master and managing a team required meticulous planning and constant monitoring. Overcoming these challenges has been a crucial part of my professional growth.
+import { Xslt, XmlParser } from 'xslt-processor';
+import { getXSLTSchemas } from '../showMxTemplateAsTreeView/showTempAction';
+const xslt = new Xslt();
+const xmlParser = new XmlParser();
+
+function Code () {
+useEffect(() => {
+    try {
+        getXSLTSchemas().then(resSchemas => {              
+            // Get a JSON object from each of the responses
+           const schemaPromises= resSchemas.map(result => {
+                if(result.status === 'fulfilled') return result.value.text();
+                else return Promise.reject(new Error(`XSD Schema issue : ${result.reason}`))
+           });
+           return Promise.allSettled(schemaPromises);
+        })
+        .then(resData => {
+            const schemaData = resData.map(result => {
+                if(result.status === 'fulfilled') return result.value;
+                else return null;
+            })     
+             
+            console.log('schemaData', schemaData)   
+            xslt.xsltProcess(
+                xmlParser.xmlParse(schemaData[0]),
+                xmlParser.xmlParse(schemaData[1])
+            )
+            .then((result) => {
+                console.log('output', result)
+            })
+            .catch(error => {
+                console.log('error', error);
+            })
+        })     
+    }
+    catch(error)  {
+        console.log('error', error);
+    }       
+    }, [])
+}
+Error facing like
+
+Error: not implemented: import
+    at Xslt.<anonymous> (xslt.ts:280:1)
+    at step (xslt.ts:9:1)
+    at Object.next (xslt.ts:9:1)
+    at xslt.ts:9:1
+    at new Promise (<anonymous>)
+    at push../node_modules/xslt-processor/xslt/xslt.js.__awaiter (xslt.ts:9:1)
+    at Xslt.xsltProcessContext (xslt.ts:152:1)
+    at Xslt.<anonymous> (xslt.ts:775:1)
+    at step (xslt.ts:9:1)
+    at Object.next (xslt.ts:9:1)
+
