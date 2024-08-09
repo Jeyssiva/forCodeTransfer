@@ -1,58 +1,24 @@
-
-mycode
-------------
-
-import { Xslt, XmlParser } from 'xslt-processor';
-import { getXSLTSchemas } from '../showMxTemplateAsTreeView/showTempAction';
-const xslt = new Xslt();
-const xmlParser = new XmlParser();
-
-function Code () {
-useEffect(() => {
-    try {
-        getXSLTSchemas().then(resSchemas => {              
-            // Get a JSON object from each of the responses
-           const schemaPromises= resSchemas.map(result => {
-                if(result.status === 'fulfilled') return result.value.text();
-                else return Promise.reject(new Error(`XSD Schema issue : ${result.reason}`))
-           });
-           return Promise.allSettled(schemaPromises);
-        })
-        .then(resData => {
-            const schemaData = resData.map(result => {
-                if(result.status === 'fulfilled') return result.value;
-                else return null;
-            })     
-             
-            console.log('schemaData', schemaData)   
-            xslt.xsltProcess(
-                xmlParser.xmlParse(schemaData[0]),
-                xmlParser.xmlParse(schemaData[1])
-            )
-            .then((result) => {
-                console.log('output', result)
-            })
-            .catch(error => {
-                console.log('error', error);
-            })
-        })     
-    }
-    catch(error)  {
-        console.log('error', error);
-    }       
-    }, [])
-}
-Error facing like
-
-Error: not implemented: import
-    at Xslt.<anonymous> (xslt.ts:280:1)
-    at step (xslt.ts:9:1)
-    at Object.next (xslt.ts:9:1)
-    at xslt.ts:9:1
-    at new Promise (<anonymous>)
-    at push../node_modules/xslt-processor/xslt/xslt.js.__awaiter (xslt.ts:9:1)
-    at Xslt.xsltProcessContext (xslt.ts:152:1)
-    at Xslt.<anonymous> (xslt.ts:775:1)
-    at step (xslt.ts:9:1)
-    at Object.next (xslt.ts:9:1)
-c3bf0388-9150-4ea8-b279-381d97040c93.local
+const showMxTemplateSlice = createSlice({
+    name : SHOW_MX_TEMPLATE,
+    initialState,
+    reducers: {
+		reset1(state, action) {
+		},
+		reset2(state, action) {
+		},
+		reset2(state, action) {
+		},
+		reset3(state, action) {
+		},
+		reset4(state, action) {
+		},
+		reset5(state, action) {
+		},
+		reset6(state, action) {
+		}
+		.
+		.
+		reset20(state, action){
+		}
+	}
+})
