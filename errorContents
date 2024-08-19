@@ -1,35 +1,132 @@
-Jeyalakshmi Ramamoorthy
-B15-05 Palm court condo., Brick fields
-Kuala lumpur 50470
-jeya254@gmail.com
-+60177605376
-10/08/2024
+export const onAddNewItems = (hierSchema, hierData, oriHierSchema, parentDets, shortTitle) => {
+    let childSchemaObj = hierSchema
+    let childDataObj = hierData
+    let oriHierSchemaObj = oriHierSchema
 
-Hiring Manager
-TBSx3 Malaysia Sdn Bhd
-Penang Island.
+    parentDets.slice(0, -1).forEach(item => {
+      const iName = typeof item === "number" ? `Item${item}` : item
+      childSchemaObj = childSchemaObj[iName].children
+      if(typeof item !== "number") oriHierSchemaObj = oriHierSchemaObj[item].children
+      if(!isEmpty(childDataObj[item])){
+          childDataObj = childDataObj[item]
+      } else {
+        childDataObj[item] ={}
+        childDataObj = childDataObj[item]
+      }
+    })
 
-Dear Hiring Manager,
+    const childDetailsFromOriginalSchema = cloneDeep(oriHierSchemaObj[shortTitle])
+    const curDataItem  = childDataObj && childDataObj[shortTitle] ? {...childDataObj[shortTitle]} : null;
+    let curParentItem = {...childSchemaObj[shortTitle]};
+    const dataObjValidation = {[shortTitle] : {"hierIndex": curParentItem.hierIndex}};
 
-I am writing to express my enthusiasm for the Full Stack Developer position at TBSx3 Malaysia Sdn Bhd, as advertised. With over [X] years of full stack development experience and a strong background in both web and mobile application development, I am eager to contribute my skills to your innovative AgTech platform.
+    //If add the item as first time, revert the checkbox settings and choice properties
+    if(curParentItem.occuranceObj.count === 0) {
+     // dataObjValidation[shortTitle] = {}
+      const originalSchema = cloneDeep(childDetailsFromOriginalSchema)
+      const numbersList = findNumberwithIndex(curParentItem.parentDetails); 
+      reArrangeParentDetailsWithOriginalSchema(originalSchema.children, numbersList, null, null,curParentItem.parentDetails, dataObjValidation[shortTitle]);
+      if(originalSchema.isFieldWithMultiEntry){
+        curParentItem.children = {'Item0': {...originalSchema.children['Item0'], isRemovableItem: false}}
+      } else {
+        curParentItem.children = originalSchema.children
+      }
+      
+      if(originalSchema.isFieldWithMultiEntry) childDataObj[shortTitle] = dataObjValidation[shortTitle][0]
+      else childDataObj[shortTitle] = dataObjValidation[shortTitle]
+    } 
+    
+    curParentItem.hideChildForRequired = false;
+    curParentItem.occuranceObj.count += 1;
+    if(curParentItem.occuranceObj.count === 1) curParentItem.occuranceObj.showMinusForSingleItem = true
+    else curParentItem.occuranceObj.showMinusForSingleItem = false
+    
+    if(curParentItem.occuranceObj.count === curParentItem.occuranceObj.maxOccurs){
+      curParentItem.occuranceObj.restrictOccurs = true
+    }
+    
+    if(curParentItem.occuranceObj.count >= 3){
+      const iIndex = curParentItem.occuranceObj.count - 1
+      const newName = `Item${iIndex}`
+      //dataObjValidation[shortTitle] = {}
+      // get the item0 as first item.
+      const firstItemChild = cloneDeep(curParentItem.children['Item0'])
+      const newItem = createNewArrayItem(iIndex, curParentItem.parentDetails, curParentItem.nodeLevel);
+      if(firstItemChild.children){
+        const originalSchema = cloneDeep(childDetailsFromOriginalSchema)
+        const numbersList = findNumberwithIndex(curParentItem.parentDetails); 
+        reArrangeParentDetailsWithOriginalSchema(originalSchema.children, numbersList, iIndex, 0,curParentItem.parentDetails, 
+          dataObjValidation[shortTitle])
+        curParentItem.children[newName] = {...newItem, children: originalSchema.children } 
+      } else {
+         curParentItem.children[newName] = {...firstItemChild, ...newItem}
+      }
 
-In my current role at Maybank Malaysia, I am responsible for designing and developing scalable, user-friendly web applications. I worked closely with cross-functional teams to ensure that our products met both user needs and business goals. My technical expertise spans both frontend and backend development, with a particular focus on creating responsive user interfaces using frameworks like React and developing robust server-side logic using Node.js.
+      // if restrictions.minLength === 1, then add the error type = 3
+      let emptyObject = cloneDeep(dataObjValidation[shortTitle]);
+      let errorCode = {}
+      if(curParentItem.restrictions 
+        && curParentItem.restrictions.minLength === 1
+        && curParentItem.ismandatoryfield) errorCode = {error: { _text: ERRORCODES['mandatory_min'] }}
+      // else if(curParentItem.restrictions 
+      //   && curParentItem.restrictions.minLength === 1) errorCode = {error: { _text: ERRORCODES['minLength'] }}
+      else if(curParentItem.ismandatoryfield) errorCode =  {error: { _text: ERRORCODES['mandatory'] }}
+      if(!isEmpty(errorCode)){
+        emptyObject = errorCode;
+      }
+      // Add the empty object in data json based on the item addition
+      childDataObj[shortTitle].push(emptyObject)
+    } 
+    // if the occurance count >= 2, then the child fields should be come inside items like Item0 and Item1
+    else if(curParentItem.occuranceObj.count >= 2){
+      let addChildItems = {};   
+      const childInfo = cloneDeep(curParentItem.children);     
+      for(let i = 0; i < 2; i++){
+        const newItemName = `Item${i}`
+        const newItem = createNewArrayItem(i, curParentItem.parentDetails, curParentItem.nodeLevel)
+        //dataObjValidation[shortTitle] = {}
+        if(childInfo && !curParentItem.isFieldWithMultiEntry){
+          if(i === 0){   
+            reArrangeParentDetailsWithOriginalSchema(childInfo, [], i, 0, curParentItem.parentDetails)
+            addChildItems[newItemName] = {...newItem, children: childInfo }
+          } else {
+            const originalSchema = cloneDeep(childDetailsFromOriginalSchema)
+            const numbersList = findNumberwithIndex(curParentItem.parentDetails);
+            reArrangeParentDetailsWithOriginalSchema(originalSchema.children, numbersList, i, 0,curParentItem.parentDetails, dataObjValidation[shortTitle])
+            addChildItems[newItemName] = {...newItem, children: originalSchema.children }  
+          }
+        } else {
+          const [singleItem] = Object.values(childInfo);
+          addChildItems[newItemName] = {...singleItem, ...newItem}
+        }
+      }
 
-I am particularly excited about this opportunity because it aligns with my personal and professional goals. My husband has recently relocated to Penang for work, and I am seeking a permanent position that allows me to settle in the area and build a long-term career. The chance to work at TBSx3 Malaysia Sdn Bhd is especially appealing because of your commitment to innovation and the positive impact your platform has on the agriculture industry.
-
-Here are some of the key strengths I bring to your team:
-
-Comprehensive Full Stack Development Skills: I have a deep understanding of both frontend and backend technologies, including HTML, CSS, JavaScript, React, Node.js, and Python(Basics). My experience with databases like MySQL and MongoDB ensures that I can design and maintain efficient data management systems.
-
-Integration and API Development: I have successfully integrated third-party services and developed RESTful APIs to ensure seamless communication between systems, enhancing both the performance and scalability of applications.
-
-Collaboration and Code Quality: I actively participate in code reviews, pair programming, and collaborative problem-solving sessions to maintain high-quality code. My attention to detail and problem-solving skills have consistently contributed to the successful delivery of projects.
-
-Continuous Learning and Innovation: I am committed to staying updated with the latest industry trends and emerging technologies. This proactive approach has allowed me to bring innovative solutions to the teams I’ve worked with.
-
-I am confident that my technical skills, coupled with my ability to work effectively within a team, make me an excellent fit for the Full Stack Developer role at TBSx3 Malaysia Sdn Bhd. I am eager to bring my experience to your team and contribute to the success of your platform.
-
-Thank you for considering my application. I look forward to the opportunity to discuss how I can contribute to your team and help drive the success of your AgTech platform.
-
-Sincerely,
-Jeyalakshmi.
+      curParentItem.children = cloneDeep(addChildItems);
+      // if restrictions.minLength === 1, then add the error type = 3
+      let emptyObject = cloneDeep(dataObjValidation[shortTitle])
+      let errorCode = {}
+      if(curParentItem.restrictions && curParentItem.restrictions.minLength === 1
+        && curParentItem.ismandatoryfield) errorCode = {error: { _text: ERRORCODES['mandatory_min'] }}
+      // else if(curParentItem.restrictions 
+      //   && curParentItem.restrictions.minLength === 1) errorCode = {error: { _text: ERRORCODES['minLength'] }}
+      else if(curParentItem.ismandatoryfield) errorCode =  {error: { _text: ERRORCODES['mandatory'] }}
+      if(!isEmpty(errorCode)){
+        emptyObject = errorCode;
+      }
+      // If single data item available, then rearrange the item into array.
+      // isFieldWithMultiEntry - It is single field but multipleentries, So is it true, rearrange the item0 into the array. 
+      if(curDataItem){
+      // childDataObj[shortTitle] = !childSchemaObj[shortTitle].isFieldWithMultiEntry ? [curDataItem] : [curDataItem[0]]
+        childDataObj[shortTitle] = [curDataItem]
+        childDataObj[shortTitle].push(emptyObject)
+      } else {
+        // If no data items are found, then create two empty array items.
+        childDataObj[shortTitle] = []
+        for(let i = 0; i < 2; i++){
+          childDataObj[shortTitle].push(emptyObject)
+        }
+      }
+    }
+    childSchemaObj[shortTitle] = curParentItem;
+    return {hierSchemaResult: hierSchema, hierDataResult: hierData}
+}
