@@ -1,0 +1,127 @@
+
+//mainParent.jsx
+const MainParent = memo(() => {
+    return (
+        <>
+            <Box sx={{ bgcolor: 'background.paper', boxShadow: 1, borderRadius: 1}}> 
+              <ChildTabTitles handleTabChange={handleTabChange} tabValue={tabValue} />  
+              <Tab1 treeHeights={treeHeights} tabValue={tabValue} tabItem={{label:'SAA Header', value: 'saaHeader' }} />
+              <Tab2 treeHeights={treeHeights} tabValue = {tabValue} tabItem = {{label:'Body', value: 'body'}} />
+            </Box>
+        </>
+    )
+})
+
+export default MainParent;
+
+// Tab1.jsx
+const Tab1 = ({treeHeights, tabItem, tabValue, key}) => {
+    const hierSchemaJson = useSelector(getHierSchemaSaaHeader);
+    const treeItemExpandedList = useSelector(getTreeExpandSaaHeader);
+    if(isEmpty(hierSchemaJson)) return null;
+    return (
+        <div
+            role="tabpanel"
+            hidden={!(tabValue === tabItem.value)}
+            id={`full-width-tabpanel-saa`}
+            aria-labelledby={`full-width-tab-saa`}
+        >
+        {/* Component used for binding dynamic treeview hierarchy */}
+        <ChildTabs tabValue = {tabValue}
+            tabItem = {tabItem}
+            key = {key} treeHeights = {treeHeights}
+            hierSchemaJson = {hierSchemaJson} treeItemExpandedList = {treeItemExpandedList}
+            />
+        </div>
+    )
+} 
+
+//Tab2.jsx
+const Tab2 = ({treeHeights, tabItem, tabValue, key}) => {
+    const hierSchemaJson = useSelector(getHierSchemaAppHeader);
+    const treeItemExpandedList = useSelector(getTreeExpandAppHeader);
+    const [loadAppHeader, setLoadAppHeader] = useState(false);
+    const dispatch = useDispatch();
+   
+    useEffect(() => {
+        const setAppHdrTimeOut = setTimeout(() => {
+            setLoadAppHeader(true);
+            dispatch(setTabMaintainance({tabMaintainance: {[SAAHEADER_TAB] : {loaded: true}, [APPHEADER_TAB]: {loaded: true}}}))
+        }, 2000)
+
+        return () => {
+            clearTimeout(setAppHdrTimeOut);
+        }
+    }, [])
+
+    if(isEmpty(hierSchemaJson) || !loadAppHeader) return null;
+    console.log('appHeaderCheck', new Date());
+    return (
+        <div
+            role="tabpanel"
+            hidden={!(tabValue === tabItem.value)}
+            id={`full-width-tabpanel-appHead`}
+            aria-labelledby={`full-width-tab-$appHead`}
+        >
+        {/* Component used for binding dynamic treeview hierarchy */}
+        <ChildTabs tabValue = {tabValue}
+            tabItem = {tabItem}
+            key = {key} treeHeights = {treeHeights}
+            hierSchemaJson = {hierSchemaJson} treeItemExpandedList = {treeItemExpandedList}
+            />
+        </div>
+    )
+} 
+
+const ChildTabTitles = ({handleTabChange, tabValue}) => {
+    const tabMaintainance = useSelector(getTabMaintainance);
+    return (
+        <Tabs
+        sx={{ color: 'black', minHeight: "35px", height: "35px",
+        borderTopLeftRadius: 1, borderTopRightRadius: 1}}
+        value={tabValue}
+        onChange={handleTabChange}
+        indicatorColor="secondary"
+        textColor="inherit"
+        variant="fullWidth"
+        aria-label="full width tabs example"
+    >
+    {
+        MXTabs.map(tabItem => {
+          const {errors = [], invisible = true, loaded = false} = tabMaintainance[tabItem.value] || {}
+        return (    
+            <Tab label={ <Grid sx={{width: '100%', display: 'flex', justifyContent: 'center', flexDirection: 'row'}}>
+                            <Typography sx = {{fontWeight: 'bold',minHeight: 0, fontSize: '13px', textTransform: "none"}}>
+                                {tabItem.label}
+                              </Typography>
+                              {
+                                  !loaded ? (                   
+                                    <IconButton sx={{ width: '5%', marginLeft: '3px'}}>
+                                      <SyncLoader color={'#000000'}
+                                          loading={true}
+                                          size={3}
+                                          aria-label="Loading Spinner"
+                                          data-testid="loader"/>
+                                    </IconButton> 
+                                    ) : (
+                                    <IconButton onClick={onBadgeClick}>
+                                        <Badge sx={{marginLeft: '10px'}} badgeContent = {errors.length}
+                                            invisible = { invisible } color="error"/>
+                                    </IconButton>
+                                )
+                              }           
+                        </Grid>} 
+                value={tabItem.value} 
+                disabled = {!loaded}
+                className={classes.eachTab}
+                sx = {{fontWeight: 'bold',minHeight: 0, fontSize: '11px', textTransform: "none"}} 
+                key={`tab_${tabItem.label}`}
+                {...a11yProps(tabItem.value)}/>  
+        )   
+        })
+    }
+    </Tabs>
+    )
+}
+
+ChildTabs - Nothing but loading the dynamic treeview structure hierarchy, compared Tab1 with Tab2, Tab2 should be heavy and expanded list of treeview are high.
