@@ -6,14 +6,11 @@ const MainParent = memo(() => {
             <Box sx={{ bgcolor: 'background.paper', boxShadow: 1, borderRadius: 1}}> 
               <ChildTabTitles handleTabChange={handleTabChange} tabValue={tabValue} />  
               <Tab1 treeHeights={treeHeights} tabValue={tabValue} tabItem={{label:'SAA Header', value: 'saaHeader' }} />
-              <Tab2 treeHeights={treeHeights} tabValue = {tabValue} tabItem = {{label:'Body', value: 'body'}} />
+              <Tab3 treeHeights={treeHeights} tabValue = {tabValue} tabItem = {{label:'Body', value: 'body'}} />
             </Box>
         </>
     )
 })
-
-export default MainParent;
-
 // Tab1.jsx
 const Tab1 = ({treeHeights, tabItem, tabValue, key}) => {
     const hierSchemaJson = useSelector(getHierSchemaSaaHeader);
@@ -34,9 +31,9 @@ const Tab1 = ({treeHeights, tabItem, tabValue, key}) => {
             />
         </div>
     )
-} 
+}
 
-//Tab2.jsx
+//Tab2
 const Tab2 = ({treeHeights, tabItem, tabValue, key}) => {
     const hierSchemaJson = useSelector(getHierSchemaAppHeader);
     const treeItemExpandedList = useSelector(getTreeExpandAppHeader);
@@ -71,8 +68,43 @@ const Tab2 = ({treeHeights, tabItem, tabValue, key}) => {
             />
         </div>
     )
-} 
+}
+//Tab3.jsx
+const Tab3 = ({treeHeights, tabItem, tabValue, key}) => {
+    const hierSchemaJson = useSelector(getHierSchemaBody);
+    const treeItemExpandedList = useSelector(getTreeExpandBody);
+    const [loadBody, setBody] = useState(false);
+    const dispatch = useDispatch();
+    const findLoadStatus= useSelector(getTabLoadStatus([BODY_TAB]));
+    useEffect(() => {
+      if(findLoadStatus) return;
+      const setBodyTimeout = setTimeout(() => {
+        setBody(true);
+        dispatch(setTabMaintainance({tabMaintainance: {[SAAHEADER_TAB] : {loaded: true}, 
+          [APPHEADER_TAB]: {loaded: true}, [BODY_TAB] : {loaded: true}}}));
+      }, 5000);
+      return () => {
+         clearTimeout(setBodyTimeout)
+      }
+    }, [findLoadStatus])
 
+    if(isEmpty(hierSchemaJson) || !loadBody) return null;
+    return (
+        <div
+            role="tabpanel"
+            hidden={!(tabValue === tabItem.value)}
+            id={`full-width-tabpanel-body`}
+            aria-labelledby={`full-width-tab-body`}
+        >
+             {/* Component used for binding dynamic treeview hierarchy */}
+            <ChildTabs tabValue = {tabValue}
+                tabItem = {tabItem}
+                key = {key} treeHeights = {treeHeights}
+                hierSchemaJson = {hierSchemaJson} treeItemExpandedList = {treeItemExpandedList}
+                />
+        </div>
+    )
+} 
 const ChildTabTitles = ({handleTabChange, tabValue}) => {
     const tabMaintainance = useSelector(getTabMaintainance);
     return (
@@ -124,4 +156,6 @@ const ChildTabTitles = ({handleTabChange, tabValue}) => {
     )
 }
 
-ChildTabs - Nothing but loading the dynamic treeview structure hierarchy, compared Tab1 with Tab2, Tab2 should be heavy and expanded list of treeview are high.
+
+ChildTabs - Nothing but loading the dynamic treeview structure hierarchy, compared Tab1 & Tab2 with Tab3, Tab3 should be heavy and expanded list of treeview are high
+Tab2 - binded fast because expanding list is low.
