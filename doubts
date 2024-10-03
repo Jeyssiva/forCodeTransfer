@@ -1,4 +1,5 @@
-
+doubt - 1
+-----------
 //mainParent.jsx
 const MainParent = memo(() => {
     return (
@@ -159,3 +160,76 @@ const ChildTabTitles = ({handleTabChange, tabValue}) => {
 
 ChildTabs - Nothing but loading the dynamic treeview structure hierarchy, compared Tab1 & Tab2 with Tab3, Tab3 should be heavy and expanded list of treeview are high
 Tab2 - binded fast because expanding list is low.
+
+doubt - 2
+------------
+
+network.js
+----------------------------
+
+const post = async (url, data, transactionType, transactionSubType) => {
+    try {  
+        const isoToken = `Bearer ${sessionStorage.getItem(sessionItems.ISOToken)}`; 
+        const dataBody = {
+            requestHeader : {
+                ...RequestHeaders,
+                transactionType,
+                transactionSubType,
+                sourceCountry: sessionStorage.getItem(sessionItems.CountryCode),
+                requestor: sessionStorage.getItem(sessionItems.Username)
+            },
+            requestBody: data
+        } 
+        const controller = new AbortController();
+        const postSignal = controller.signal;
+        const authPost = setTimeout(() => {
+            controller.abort();
+            clearTimeout(authPost);
+        }, timeoutAPI);
+        const responsePost = await fetch(`${SERVER_ISO_URL}${url}`, {
+            method: 'POST',
+            body: JSON.stringify(dataBody),
+            headers : {
+                "Authorization" : isoToken,
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Headers": "Content-Type",
+                "Access-Control-Allow-Origin": "*"
+            },
+            signal: postSignal // Pass the signal to the fetch options for call outside catch block
+        });
+        clearTimeout(authPost);
+        return responsePost;
+    } catch(err) {
+        console.log('Error', err);
+    }
+}
+
+if add throw new Error('timeout') inside setTimeout, it should be reflect current catch only, but i am expecting where ever we called the post method, that parent method's catch should be reflected.
+
+not recommended the callback Function in post method, because i need to add all parent methods whereever the called the post method.
+
+//file2.js
+------------------
+
+export const processMakerCheckerActivities = (requestBody) => {
+   return dispatch => {
+        try {
+            network.post(`url`, requestBody)
+            .then(response => {
+               
+            })
+            .then(resData => {
+                const { responseHeader, responseBody } = resData;
+               
+            })
+            .catch(error => {
+                //expecting this catch
+            })
+        }
+        catch(error) {
+            //or this catch
+        }
+   }
+}
+
+
