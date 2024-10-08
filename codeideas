@@ -1,86 +1,71 @@
 import React, { useState } from 'react';
-import { Box, Drawer, Typography, Divider } from '@mui/material';
+import { Box, Typography, Grid } from '@mui/material';
 
-const AdjustableDrawers = () => {
-  // States for drawer widths
-  const [drawerWidths, setDrawerWidths] = useState({
-    drawer1: 0.7,
-    drawer2: 0.15,
-    drawer3: 0.15,
-  });
+const AdjustablePanels = () => {
+  const [activePanel, setActivePanel] = useState('Tab1');
 
-  // Handles drawer resizing on double click
-  const handleDoubleClick = (drawer) => {
-    setDrawerWidths((prev) => ({
-      drawer1: drawer === 'drawer1' ? 0.7 : 0.15,
-      drawer2: drawer === 'drawer2' ? 0.7 : 0.15,
-      drawer3: drawer === 'drawer3' ? 0.7 : 0.15,
-    }));
+  // Handles panel expansion when a title is double-clicked
+  const handleDoubleClick = (panel) => {
+    setActivePanel(panel);
   };
 
+  // Helper function to determine panel width
+  const getWidth = (panel) => (activePanel === panel ? 0.7 : 0.15);
+
   return (
-    <Box sx={{ display: 'flex', height: '100vh' }}>
-      {/* Drawer 1 */}
-      <Drawer
-        variant="permanent"
-        anchor="left"
-        PaperProps={{
-          sx: { width: `${drawerWidths.drawer1 * 100}%`, transition: 'width 0.3s' },
-        }}
-      >
-        <Typography
-          variant="h6"
-          onDoubleClick={() => handleDoubleClick('drawer1')}
-          sx={{ padding: '10px', cursor: 'pointer', userSelect: 'none' }}
+    <Grid container spacing={2} sx={{ height: '100vh' }}>
+      {/* Panel 1 */}
+      <Grid item xs={getWidth('Tab1') * 12}>
+        <Box
+          sx={{
+            height: '100%',
+            bgcolor: 'lightblue',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            cursor: 'pointer',
+          }}
+          onDoubleClick={() => handleDoubleClick('Tab1')}
         >
-          Drawer 1 Title
-        </Typography>
-        <Divider />
-        {/* Content for Drawer 1 */}
-        <Box sx={{ padding: '10px' }}>Content of Drawer 1</Box>
-      </Drawer>
+          <Typography variant="h6">Tab 1 (Double-click to expand)</Typography>
+        </Box>
+      </Grid>
 
-      {/* Drawer 2 */}
-      <Drawer
-        variant="permanent"
-        anchor="left"
-        PaperProps={{
-          sx: { width: `${drawerWidths.drawer2 * 100}%`, transition: 'width 0.3s' },
-        }}
-      >
-        <Typography
-          variant="h6"
-          onDoubleClick={() => handleDoubleClick('drawer2')}
-          sx={{ padding: '10px', cursor: 'pointer', userSelect: 'none' }}
+      {/* Panel 2 */}
+      <Grid item xs={getWidth('Tab2') * 12}>
+        <Box
+          sx={{
+            height: '100%',
+            bgcolor: 'lightgreen',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            cursor: 'pointer',
+          }}
+          onDoubleClick={() => handleDoubleClick('Tab2')}
         >
-          Drawer 2 Title
-        </Typography>
-        <Divider />
-        {/* Content for Drawer 2 */}
-        <Box sx={{ padding: '10px' }}>Content of Drawer 2</Box>
-      </Drawer>
+          <Typography variant="h6">Tab 2 (Double-click to expand)</Typography>
+        </Box>
+      </Grid>
 
-      {/* Drawer 3 */}
-      <Drawer
-        variant="permanent"
-        anchor="left"
-        PaperProps={{
-          sx: { width: `${drawerWidths.drawer3 * 100}%`, transition: 'width 0.3s' },
-        }}
-      >
-        <Typography
-          variant="h6"
-          onDoubleClick={() => handleDoubleClick('drawer3')}
-          sx={{ padding: '10px', cursor: 'pointer', userSelect: 'none' }}
+      {/* Panel 3 */}
+      <Grid item xs={getWidth('Tab3') * 12}>
+        <Box
+          sx={{
+            height: '100%',
+            bgcolor: 'lightcoral',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            cursor: 'pointer',
+          }}
+          onDoubleClick={() => handleDoubleClick('Tab3')}
         >
-          Drawer 3 Title
-        </Typography>
-        <Divider />
-        {/* Content for Drawer 3 */}
-        <Box sx={{ padding: '10px' }}>Content of Drawer 3</Box>
-      </Drawer>
-    </Box>
+          <Typography variant="h6">Tab 3 (Double-click to expand)</Typography>
+        </Box>
+      </Grid>
+    </Grid>
   );
 };
 
-export default AdjustableDrawers;
+export default AdjustablePanels;
