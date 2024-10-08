@@ -1,0 +1,86 @@
+import React, { useState } from 'react';
+import { Box, Drawer, Typography, Divider } from '@mui/material';
+
+const AdjustableDrawers = () => {
+  // States for drawer widths
+  const [drawerWidths, setDrawerWidths] = useState({
+    drawer1: 0.7,
+    drawer2: 0.15,
+    drawer3: 0.15,
+  });
+
+  // Handles drawer resizing on double click
+  const handleDoubleClick = (drawer) => {
+    setDrawerWidths((prev) => ({
+      drawer1: drawer === 'drawer1' ? 0.7 : 0.15,
+      drawer2: drawer === 'drawer2' ? 0.7 : 0.15,
+      drawer3: drawer === 'drawer3' ? 0.7 : 0.15,
+    }));
+  };
+
+  return (
+    <Box sx={{ display: 'flex', height: '100vh' }}>
+      {/* Drawer 1 */}
+      <Drawer
+        variant="permanent"
+        anchor="left"
+        PaperProps={{
+          sx: { width: `${drawerWidths.drawer1 * 100}%`, transition: 'width 0.3s' },
+        }}
+      >
+        <Typography
+          variant="h6"
+          onDoubleClick={() => handleDoubleClick('drawer1')}
+          sx={{ padding: '10px', cursor: 'pointer', userSelect: 'none' }}
+        >
+          Drawer 1 Title
+        </Typography>
+        <Divider />
+        {/* Content for Drawer 1 */}
+        <Box sx={{ padding: '10px' }}>Content of Drawer 1</Box>
+      </Drawer>
+
+      {/* Drawer 2 */}
+      <Drawer
+        variant="permanent"
+        anchor="left"
+        PaperProps={{
+          sx: { width: `${drawerWidths.drawer2 * 100}%`, transition: 'width 0.3s' },
+        }}
+      >
+        <Typography
+          variant="h6"
+          onDoubleClick={() => handleDoubleClick('drawer2')}
+          sx={{ padding: '10px', cursor: 'pointer', userSelect: 'none' }}
+        >
+          Drawer 2 Title
+        </Typography>
+        <Divider />
+        {/* Content for Drawer 2 */}
+        <Box sx={{ padding: '10px' }}>Content of Drawer 2</Box>
+      </Drawer>
+
+      {/* Drawer 3 */}
+      <Drawer
+        variant="permanent"
+        anchor="left"
+        PaperProps={{
+          sx: { width: `${drawerWidths.drawer3 * 100}%`, transition: 'width 0.3s' },
+        }}
+      >
+        <Typography
+          variant="h6"
+          onDoubleClick={() => handleDoubleClick('drawer3')}
+          sx={{ padding: '10px', cursor: 'pointer', userSelect: 'none' }}
+        >
+          Drawer 3 Title
+        </Typography>
+        <Divider />
+        {/* Content for Drawer 3 */}
+        <Box sx={{ padding: '10px' }}>Content of Drawer 3</Box>
+      </Drawer>
+    </Box>
+  );
+};
+
+export default AdjustableDrawers;
