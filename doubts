@@ -232,4 +232,49 @@ export const processMakerCheckerActivities = (requestBody) => {
    }
 }
 
+doubt 3
+-----------------
+
+const Tab1 = ({treeHeights, tabItem, tabValue, key, reMounted}) => {
+    const hierSchemaJson = useSelector(getHierSchemaSaaHeader);
+    const treeItemExpandedList = useSelector(getTreeExpandSaaHeader);
+    if(isEmpty(hierSchemaJson)) return null;
+    const saaWorkerRef = useRef(null);
+    useEffect(() => {
+        if(saaWorkerRef.current) saaWorkerRef.current.terminate();
+        const saaWorker = new Worker(new URL ('tabWorker.js', import.meta.url));
+        saaWorkerRef.current = saaWorker;
+        saaWorker.postMessage({tabKey: SAAHEADER_TAB, payload: 'dataForSaaHeader'});
+        saaWorker.onmessage = e => {
+            // const {result} = e.data;
+            // console.log(result)
+            // setSaaData(result.payload);
+            dispatch(setTabMaintainance({tabName: [SAAHEADER_TAB], data : {loaded: true}}));
+        }
+        saaWorker.onerror = err => {
+            console.log(err);
+        }
+        return () => {
+            if(saaWorkerRef.current) {
+                saaWorkerRef.terminate();
+                saaWorkerRef.current = null;
+            }
+        }
+      }, [reMounted])
+    return (
+        <div
+            role="tabpanel"
+            hidden={!(tabValue === tabItem.value)}
+            id={`full-width-tabpanel-saa`}
+            aria-labelledby={`full-width-tab-saa`}
+        >
+        {/* Component used for binding dynamic treeview hierarchy */}
+        <ChildTabs tabValue = {tabValue}
+            tabItem = {tabItem}
+            key = {key} treeHeights = {treeHeights}
+            hierSchemaJson = {hierSchemaJson} treeItemExpandedList = {treeItemExpandedList}
+            />
+        </div>
+    )
+}
 
