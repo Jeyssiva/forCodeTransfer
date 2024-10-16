@@ -278,3 +278,57 @@ const Tab1 = ({treeHeights, tabItem, tabValue, key, reMounted}) => {
     )
 }
 
+doubt 4
+---------------
+
+import * as React from 'react';
+import { IconButton } from "@mui/material";
+import { makeStyles } from '@mui/styles';
+import { FadeLoader } from "react-spinners";
+
+export const useStyles = makeStyles(() => ({
+  spinnerContainer: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    zIndex: '9999' 
+  },
+  spinnerOverlay: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      width: '100%',
+      height: '100%',
+      backgroundColor: 'rgba(0, 0, 0, 0.5)' /* semi-transparent black */
+  },
+  spinnerDialog: {
+      position: 'absolute',
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)'
+  }
+}))
+
+const LoadingViewer = React.memo(function LoadingViewer({loading}) {
+    const classes = useStyles();
+  
+    return (
+        <div className={classes.spinnerContainer} style={{ display: loading ? 'block' : 'none' }}>
+        <div className={classes.spinnerOverlay} />
+        <div className={classes.spinnerDialog}>
+             <IconButton>
+              <FadeLoader
+                color={'#000000'}
+                loading={loading}
+                aria-label="Loading Spinner"
+                data-testid="loader"/>
+            </IconButton>
+        </div>
+      </div>
+    )
+})
+export default LoadingViewer;
+
+
