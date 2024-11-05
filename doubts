@@ -331,4 +331,112 @@ const LoadingViewer = React.memo(function LoadingViewer({loading}) {
 })
 export default LoadingViewer;
 
+doubt 5
+--------------
 
+import { Box } from "@mui/material";
+import ChildErrorPage from "../errorPage/childErrorPage";
+import { TreeView } from "@mui/x-tree-view";
+import { Add, Remove } from "@mui/icons-material";
+import CustomTreeItem from "./customTreeItem";
+import React, { memo, useCallback, useMemo } from "react";
+import { useDispatch } from "react-redux";
+import { APPHEADER_TAB, BODY_TAB, SAAHEADER_TAB } from "../../constants/mxTempConstants";
+import { treeExpandedListSaa } from "./saaHeaderSlice";
+import { treeExpandedListApp } from "./appHeaderSlice";
+import { treeExpandedListBody } from "./bodySlice";
+
+const ChildTabs = (props) =>
+{
+  const { tabValue, tabItem, treeHeights, treeItemExpandedList, hierSchemaJson } = props;
+  const dispatch = useDispatch();
+  
+  const renderTreeItem = useMemo((processingData, nodeName) => {
+    const childArray = processingData[nodeName];
+    const { shortTitle, children, longTitle, nodeLevel,
+            type: elementHierName, ...childOthers } = childArray;
+    const {isChoiceChildHidden} = childOthers;
+    const hasChildren = children ? true : false;
+    if(isChoiceChildHidden) return null;
+
+    return (
+      <Box
+        sx={hasChildren ? {
+         // boxShadow: 1,
+          borderRadius: 0.5,
+          // px: 0.5, // Box Padding
+          py: 0.1,
+          // border : '#e3e3e3 solid 1px'
+        } : {}}
+        key={`TreeBox_${shortTitle}`}
+      >
+        <CustomTreeItem
+          key={shortTitle}
+          nodeId={nodeLevel}
+          labeltext={longTitle}
+          hasChildren={hasChildren}
+          elementHierName = {elementHierName}
+          shortTitle={shortTitle}
+          tabName = {tabValue}
+          {...childOthers}
+          >
+          {
+            (childOthers.hideChildForRequired !== true)
+                && hasChildren 
+                && Object.keys(children).map((key, index) => {  
+                  return renderTreeItem(children, key)
+                })
+          }
+        </CustomTreeItem>
+      </Box>
+    )
+  },[hierSchemaJson]);
+
+  try {
+    return (
+        <div
+            role="tabpanel"
+            hidden={!(tabValue === tabItem.value)}
+            id={`full-width-tabpanel-${0}`}
+            aria-labelledby={`full-width-tab-${0}`}
+        >
+        {/* <Box sx={{ bgcolor: 'background.paper', boxShadow: 2, borderRadius: 1, mt: 0.5}}> */}
+        <TreeView
+          aria-label="summary"
+          defaultCollapseIcon={<Remove />}
+          defaultExpandIcon={<Add />}
+          defaultEndIcon={<div style={{ width: 24 }} />}
+          sx={{px: 0.5, py: 0.5, flexGrow: 1, maxWidth: '100%', overflowY: 'auto', 
+            maxHeight: treeHeights.max || null, height: treeHeights.height || null, minHeight: treeHeights.min || null}}
+          onNodeToggle={onHandleNodeExpand}
+          expanded={(treeItemExpandedList && treeItemExpandedList) || []}
+        >
+          {
+            renderTreeItem(hierSchemaJson, Object.keys(hierSchemaJson)[0])
+          }
+        </TreeView>
+      </div>
+    )
+  }
+  catch(err) {
+    console.error(err);
+    return <ChildErrorPage subTitle = {"common.wentWrong"}/>
+  }
+}
+export default memo(ChildTabs);
+
+// CustomTreeItem.jsx
+const CustomTreeItemComponent = React.memo(
+      function CustomTreeItem(props) {       
+        return <StyledTreeItemRoot
+                  suppressContentEditableWarning={true} ContentComponent = {TemplateSubItems}
+                  ContentProps = {{contentProps: {...props}}} {...props}
+              />;
+    }
+  )
+  
+I am using @mui/Treeview for recursive binding.
+TemplateSubItems - it is component and inside heavy calculations && lot of sub components are there.
+
+You are suggested react-virtualized package for resolve performance issue.
+based on the code, how to utilize the package.
