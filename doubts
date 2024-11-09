@@ -594,3 +594,213 @@ const flattenTree = (tree, parentKey = '') => {
   traverse(tree[Object.keys(tree)[0]], Object.keys(tree)[0]);
   return flattened;
 };
+
+doubt 6
+-----------------
+
+const resultJson = {
+    "Message": {
+        "SenderReference": {
+            "_text": "d"
+        },
+        "MessageIdentifier": {
+            "_text": "dsd"
+        },
+        "Format": {
+            "_text": "df"
+        },
+        "SubFormat": {
+            "_text": "Input"
+        },
+        "Sender": {
+            "DN": {
+                "_text": "fd"
+            },
+            "FullName": {
+                "X1": {
+                    "_text": "sd"
+                }
+            }
+        },
+        "Receiver": {
+            "DN": {
+                "_text": "dsdsdf"
+            },
+            "FullName": {
+                "X1": {
+                    "_text": "d"
+                }
+            }
+        }
+    }
+}
+
+const hierJson = {
+	"Message": {
+		"shortTitle": "Message",
+		"parentDetails": [
+			"saaHeader",
+			"Header",
+			"Message"
+		],
+		"longTitle": "Message",
+		"children": {
+			"SenderReference": {
+				"shortTitle": "SenderReference",
+				"parentDetails": [
+					"saaHeader",
+					"Header",
+					"Message",
+					"SenderReference"
+				],
+				"longTitle": "SenderReference",
+				"elementType": "string",
+			},
+			"MessageIdentifier": {
+				"shortTitle": "MessageIdentifier",
+				"parentDetails": [
+					"saaHeader",
+					"Header",
+					"Message",
+					"MessageIdentifier"
+				],
+				"elementType": "string",
+				"longTitle": "MessageIdentifier",
+			},
+			"Format": {
+				"shortTitle": "Format",
+				"parentDetails": [
+					"saaHeader",
+					"Header",
+					"Message",
+					"Format"
+				],
+				"longTitle": "Format",
+				"elementType": "string"
+			},
+			"SubFormat": {
+				"shortTitle": "SubFormat",
+				"parentDetails": [
+					"saaHeader",
+					"Header",
+					"Message",
+					"SubFormat"
+				],
+				"longTitle": "SubFormat",
+				"elementType": "dropdown"
+			},
+			"Sender": {
+				"shortTitle": "Sender",
+				"parentDetails": [
+					"saaHeader",
+					"Header",
+					"Message",
+					"Sender"
+				],
+				"longTitle": "Sender",
+				"children": {
+					"DN": {
+						"shortTitle": "DN",
+						"parentDetails": [
+							"saaHeader",
+							"Header",
+							"Message",
+							"Sender",
+							"DN"
+						],
+						"longTitle": "DN",
+					},
+					"FullName": {
+						"shortTitle": "FullName",
+						"parentDetails": [
+							"saaHeader",
+							"Header",
+							"Message",
+							"Sender",
+							"FullName"
+						],
+						"longTitle": "FullName",							
+						"children": {
+							"X1": {
+								"shortTitle": "X1",
+								"parentDetails": [
+									"saaHeader",
+									"Header",
+									"Message",
+									"Sender",
+									"FullName",
+									"X1"
+								],
+								"longTitle": "X1",
+								"elementType": "string",
+							}
+						}
+					}
+				}
+			},
+			"Receiver": {
+				"shortTitle": "Receiver",
+				"parentDetails": [
+					"saaHeader",
+					"Header",
+					"Message",
+					"Receiver"
+				],
+				"longTitle": "Receiver",
+				"children": {
+					"DN": {
+						"shortTitle": "DN",
+						"parentDetails": [
+							"saaHeader",
+							"Header",
+							"Message",
+							"Receiver",
+							"DN"
+						],
+						"longTitle": "DN",
+						"elementType": "longString",
+					},
+					"FullName": {
+						"shortTitle": "FullName",
+						"parentDetails": [
+							"saaHeader",
+							"Header",
+							"Message",
+							"Receiver",
+							"FullName"
+						],
+						"longTitle": "FullName",							
+						"children": {
+							"X1": {
+								"shortTitle": "X1",
+								"parentDetails": [
+									"saaHeader",
+									"Header",
+									"Message",
+									"Receiver",
+									"FullName",
+									"X1"
+								],
+								"longTitle": "X1",
+								"elementType": "string",
+							}
+						}
+					}
+				}
+			},
+		}
+	}
+}
+i am using @mui/Treeview and TreeItem for hierarchy
+
+hierJson - It is used for binding the data in hierarchical structure, For this structure i am using @mui/Treeview and Treeitem.
+depends on elementType, generate the UI Inputfields such as TextField, dropdown, Autocomplete, Radio and on. Ex: elementType === 'string', then InputField.
+all of them are derived from @mui package. Parent Section contains checkbox as well
+resultJson - It is used for store the inputdata in corresponding location.For Ex: If type anything in Sender's FullName field, the value will be store in 
+(Message -> Sender -> FullName) and show the data in UI.
+Note -  It is sample json hierarchical structure. Actual json contains lot of sections.
+Problem - If do any changes in the text field, entire resultJson json will be affected. we could not generate each store for each section/field because huge of amount of sections and fields are there in hierJson and one main problem is tick the checkbox in the parent section, take some time for updation.
+Expected - If tick any checkbox or type any input in the textfield or do any selection in dropdown/radio, only affect corresponding area.
+
+need to change the architecture? if possible please share flexible approach for improve performance.	
+
