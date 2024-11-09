@@ -505,3 +505,65 @@ const flattenTreeData = (treeData) => {
 npm ERR! 404 Not Found - GET https://registry.npmjs.org/react-virturalized - Not found
 npm ERR! 404
 npm ERR! 404  'react-virturalized@*' is not in this registry.
+
+import React, { memo, useCallback, useMemo } from "react";
+import { Box } from "@mui/material";
+import { List } from 'react-virtualized';
+import CustomTreeItem from "./customTreeItem";
+
+const ChildTabs = ({ tabValue, tabItem, treeHeights, treeItemExpandedList, hierSchemaJson }) => {
+  const [flattenedData, setFlattenedData] = useMemo(() => flattenTreeData(hierSchemaJson), [hierSchemaJson]);
+
+  // rowRenderer for rendering each tree node
+  const rowRenderer = useCallback(({ index, key, style }) => {
+    const node = flattenedData[index];
+    return (
+      <Box key={key} style={style}>
+        <CustomTreeItem
+          nodeId={node.nodeLevel}
+          labeltext={node.longTitle}
+          hasChildren={node.hasChildren}
+          elementHierName={node.elementHierName}
+          shortTitle={node.shortTitle}
+          tabName={tabValue}
+          {...node.childOthers}
+        >
+          {/* Render children if expanded and needed */}
+        </CustomTreeItem>
+      </Box>
+    );
+  }, [flattenedData, tabValue]);
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={!(tabValue === tabItem.value)}
+      id={`full-width-tabpanel-${0}`}
+      aria-labelledby={`full-width-tab-${0}`}
+    >
+      <List
+        width={treeHeights.width || '100%'}
+        height={treeHeights.height || 400} 
+        rowCount={flattenedData.length}
+        rowHeight={50} // Customize based on the height of your CustomTreeItem
+        rowRenderer={rowRenderer}
+      />
+    </div>
+  );
+};
+
+export default memo(ChildTabs);
+
+// Utility function to flatten tree data for virtualized rendering
+const flattenTreeData = (treeData) => {
+  let flatList = [];
+  const traverse = (node, level = 0) => {
+    flatList.push({ ...node, nodeLevel: level });
+    if (node.children) {
+      Object.values(node.children).forEach(child => traverse(child, level + 1));
+    }
+  };
+  traverse(treeData[Object.keys(treeData)[0]]);
+  return flatList;
+};
+
