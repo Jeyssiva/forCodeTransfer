@@ -804,3 +804,172 @@ Expected - If tick any checkbox or type any input in the textfield or do any sel
 
 need to change the architecture? if possible please share flexible approach for improve performance.	
 
+doubt 7
+--------------------------------------------------------------------------------
+// persistedSlice.js
+import {  persistReducer } from 'redux-persist';
+import { PERSISTED_SLICE } from '../../constants/sliceConstants';
+import { combineReducers, createSlice } from '@reduxjs/toolkit';
+import storage from 'redux-persist/lib/storage'; //default is localStorage;
+
+const initialState = {
+    bodySchemaB2CSTD : {},
+    bodySchemaB2BSTD : {},
+    bodySchemaB2BCoV : {},
+    lastFetchedTimestamp : ''
+}
+
+// Expiration logic for user data
+const expireTransformer = {
+    in: (inboundState, key) => {
+      const stateWithTimestamp = inboundState;
+  
+      // Check if the fetchedTimestamp is older than 24 hours (1 day)
+      if (stateWithTimestamp?.user?.fetchedTimestamp) {
+        const lastFetched = stateWithTimestamp.user.fetchedTimestamp;
+        if (Date.now() - lastFetched > 24 * 60 * 60 * 1000) {
+          // If older than 1 day, clear the state (return undefined)
+          return undefined;
+        }
+      }
+  
+      return stateWithTimestamp;
+    },
+    out: (outboundState, key) => outboundState,
+};
+
+const persistConfig = {
+    key: 'persistedSchemaData',
+    version: 1,
+    storage, // LocalStorage
+    transforms : [expireTransformer]
+}
+
+// Slice to handle any state changes
+const persistedSlice = createSlice({
+    name: PERSISTED_SLICE,
+    initialState,
+    reducers: {
+      loadSchemas: (state, action) => {
+        state.bodySchemaB2CSTD = 'bodySchemaB2CSTD';
+        state.bodySchemaB2BSTD = 'bodySchemaB2BSTD';
+        state.bodySchemaB2BCoV = 'bodySchemaB2BCoV';
+        state.lastFetchedTimestamp = Date.now();
+      },
+    },
+  });
+
+export const persistedDataReducer = persistReducer(
+    persistConfig,
+    combineReducers({
+      persistedData: persistedSlice.reducer
+    })
+);
+
+//store.js
+import storage from 'redux-persist/lib/storage';
+import loginReducer from './features/login/loginSlice';
+import bankReducer from './features/banklist/bankSlice';
+import { configureStore, combineReducers } from '@reduxjs/toolkit';
+import nonstpReducer from './features/nonSTPTransactions/nonstpSlice';
+import mxTemplateReducer from './features/mxTemplates/mxTemplatesSlice';
+import dashboardReducer, { dashInitialState } from './features/dashboard/dashboardSlice';
+import { persistReducer, persistStore, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from 'redux-persist';
+import createpaymentReducer, { paymentInitialState } from './features/createPayment/paymentSlice';
+import customerReducer, { customerInitialState } from './features/customerPaymentData/customerDataSlice';
+import showMxTempReducer, { showMxInitialState } from './features/showMxTemplateAsTreeView/showMxTempSlice';
+import viewTransactionReducer, { viewTransInitialState } from './features/viewTransactions/viewTransactionSlice';
+import saaHeaderReducer, { saaInitialState } from './features/showMxTemplateAsTreeView/saaHeaderSlice';
+import appHeaderReducer, { appInitialState } from './features/showMxTemplateAsTreeView/appHeaderSlice';
+import bodyReduer, { bodyInitialState } from './features/showMxTemplateAsTreeView/bodySlice';
+import savedTemplatesReducer, { templatesInitialState } from './features/savedTemplates/templatesSlice';
+import { persistedDataReducer } from './features/showMxTemplateAsTreeView/persistedSlice';
+
+const persistConfig = {
+  key: 'root',
+  storage,
+  whitelist: [],
+};
+
+const rootReducer = (state, action) => {
+  if (action.type === 'auth/logout') {
+    return {
+      login: state.login,
+      dashboard: dashInitialState,
+      bankmaintainance: undefined,
+      mxtemplates: undefined,
+      viewtransactions: viewTransInitialState,
+      showMxTemplate: showMxInitialState,
+      nonstptransactions: undefined,
+      createcustomer: customerInitialState,
+      createpayment: paymentInitialState,
+      saaheader: saaInitialState,
+      appheader: appInitialState,
+      bodytab: bodyInitialState,
+      savedtemplates: templatesInitialState,
+      persistedData : state.persistedData
+    }
+  }
+  // Return the original state if not handling logout
+  return {
+    login: loginReducer(state?.login, action),
+    dashboard: dashboardReducer(state?.dashboard, action),
+    bankmaintainance: bankReducer(state?.bankmaintainance, action),
+    mxtemplates: mxTemplateReducer(state?.mxtemplates, action),
+    viewtransactions: viewTransactionReducer(state?.viewtransactions, action),
+    showMxTemplate: showMxTempReducer(state?.showMxTemplate, action),
+    nonstptransactions: nonstpReducer(state?.nonstptransactions, action),
+    createcustomer: customerReducer(state?.createcustomer, action),
+    createpayment: createpaymentReducer(state?.createpayment, action),
+    saaheader: saaHeaderReducer(state?.saaheader, action),
+    appheader: appHeaderReducer(state?.appheader, action),
+    bodytab: bodyReduer(state?.bodytab, action),
+    savedtemplates: savedTemplatesReducer(state?.savedtemplates, action),
+    persistedData: persistedDataReducer(state?.persistedData, action)
+  }
+}
+
+const persistedReducer = persistReducer(persistConfig, rootReducer);
+
+const store = configureStore({
+  reducer: persistedReducer,
+  middleware: (getDefaultMiddleware) => getDefaultMiddleware({
+    immutableCheck: { warnAfter: 150 },
+    serializableCheck: {
+      warnAfter: 150,
+      ignoreActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER]
+    }
+  })
+});
+
+export default store;
+
+index.jsx
+-------------
+import App from './App';
+import store from './store';
+import { Provider } from 'react-redux'
+import ReactDOM from 'react-dom/client';
+import { persistStore } from 'redux-persist';
+import { PersistGate } from 'redux-persist/integration/react';
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+
+const persistor = persistStore(store);
+
+root.render(
+    <Provider store={store}>
+        <PersistGate persistor={persistor}>
+            <App />
+        </PersistGate>
+    </Provider>
+);
+
+// to display the global store in console tab
+window.store = store;
+
+These are my codes. Is It correct code flow?
+My Expected is - persistedDataReducer should be persist the data until one day after closed tab or browser. 
+remaining should be erased if closed tab or browser.
+
+could you please confirm my expectation will be achieve in this code?
