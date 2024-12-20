@@ -973,3 +973,29 @@ My Expected is - persistedDataReducer should be persist the data until one day a
 remaining should be erased if closed tab or browser.
 
 could you please confirm my expectation will be achieve in this code?
+
+const Slice1 = createSlice({
+    name : 'slice1',
+    {
+	value1 : '100'
+	},
+    reducers: {
+        reducer1(state, action) {
+           //value2 from Slice2
+		   const add = value1 + value2
+		   
+        },
+        
+    }
+})
+
+const Slice2 = createSlice({
+    name : 'slice2',
+    {
+	value2 : '100'
+	},
+    reducers: {
+    }
+})
+
+Expected -call value2 from slice1's reducers. suggest best approach
