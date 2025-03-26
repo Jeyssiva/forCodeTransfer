@@ -213,3 +213,76 @@ should be
 
 Same for SvcLvl, Kindly refer mxMessage
 Note - InstrForNxtAgt, SvcLvl is not static, same concept should be applicable for other tags
+
+
+Fixes 1
+-----------------
+
+    const renderXMLToPdf = (data) => {
+    return Object.keys(data).map((key, index) => {
+        if (key === '_attributes') return null; // Ignore _attributes key
+
+        const element = data[key];
+
+        // Handle array elements properly
+        if (Array.isArray(element)) {
+            return element.map((item, idx) => (
+                <View key={`${key}-${idx}`} style={styles.viewParent}>
+                    <Text>
+                        {'<'}
+                        <Text style={styles.textNodeColor}>{key}</Text>
+                        {'>'}
+                    </Text>
+                    {renderXMLToPdf(item)}
+                    <Text>
+                        {'</'}
+                        <Text style={styles.textNodeColor}>{key}</Text>
+                        {'>'}
+                    </Text>
+                </View>
+            ));
+        }
+
+        // Handle elements with text content
+        if (has(element, '_text')) {
+            return (
+                <Text key={key} style={styles.textProperty}>
+                    {'<'}
+                    <Text style={styles.textNodeColor}>{key}</Text>
+                    {has(element, '_attributes') ? ` ${formatAttributes(element._attributes)}` : ''}
+                    {'>'}
+                    {element._text}
+                    {'</'}
+                    <Text style={styles.textNodeColor}>{key}</Text>
+                    {'>'}
+                </Text>
+            );
+        }
+
+        // Handle elements with attributes
+        let attributes = has(element, '_attributes') ? formatAttributes(element._attributes) : '';
+
+        return (
+            <View key={key} style={styles.viewParent}>
+                <Text>
+                    {'<'}
+                    <Text style={styles.textNodeColor}>{key}</Text>
+                    {attributes ? ` ${attributes}` : ''}
+                    {'>'}
+                </Text>
+                {renderXMLToPdf(element)}
+                <Text>
+                    {'</'}
+                    <Text style={styles.textNodeColor}>{key}</Text>
+                    {'>'}
+                </Text>
+            </View>
+        );
+    });
+};
+
+// Function to format attributes for proper XML output
+const formatAttributes = (attributes) => {
+    return Object.keys(attributes).map(attr => `${attr}="${attributes[attr]}"`).join(' ');
+};
+
