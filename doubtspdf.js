@@ -410,3 +410,78 @@ const renderXMLToPdf = (data) => {
 const formatAttributes = (attributes) => {
     return Object.keys(attributes).map(attr => `${attr}="${attributes[attr]}"`).join(' ');
 };
+
+Fix 5
+-------
+
+const renderXMLToPdf = (data) => {
+    const stack = [{ data, key: "root", parentView: [] }];
+    const result = [];
+    const seen = new WeakSet(); // Prevents circular references
+
+    while (stack.length > 0) {
+        const { data, key, parentView } = stack.pop();
+
+        if (!data || seen.has(data)) continue;
+        seen.add(data);
+
+        const children = [];
+        Object.keys(data).forEach((nodeKey) => {
+            if (nodeKey === "_attributes") return; // Ignore attributes at this stage
+
+            const element = data[nodeKey];
+
+            if (Array.isArray(element)) {
+                element.forEach((item) => {
+                    const childView = [];
+                    stack.push({ data: { [nodeKey]: item }, key: nodeKey, parentView: childView });
+                    children.push(childView);
+                });
+            } else if (typeof element === "object" && "_text" in element) {
+                children.push(
+                    <Text key={nodeKey} style={styles.textProperty}>
+                        {"<"}
+                        <Text style={styles.textNodeColor}>{nodeKey}</Text>
+                        {element._attributes ? ` ${formatAttributes(element._attributes)}` : ""}
+                        {">"}
+                        {element._text}
+                        {"</"}
+                        <Text style={styles.textNodeColor}>{nodeKey}</Text>
+                        {">"}
+                    </Text>
+                );
+            } else if (typeof element === "object") {
+                const childView = [];
+                stack.push({ data: element, key: nodeKey, parentView: childView });
+
+                children.push(
+                    <View key={nodeKey} style={styles.viewParent}>
+                        <Text>
+                            {"<"}
+                            <Text style={styles.textNodeColor}>{nodeKey}</Text>
+                            {element._attributes ? ` ${formatAttributes(element._attributes)}` : ""}
+                            {">"}
+                        </Text>
+                        {childView}
+                        <Text>
+                            {"</"}
+                            <Text style={styles.textNodeColor}>{nodeKey}</Text>
+                            {">"}
+                        </Text>
+                    </View>
+                );
+            }
+        });
+
+        parentView.push(...children);
+    }
+
+    return result;
+};
+
+// Function to format attributes safely
+const formatAttributes = (attributes) => {
+    return Object.keys(attributes)
+        .map((attr) => `${attr}="${attributes[attr]}"`)
+        .join(" ");
+};
