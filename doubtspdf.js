@@ -347,3 +347,66 @@ const renderXMLToPdf = (data) => {
 const formatAttributes = (attributes) => {
     return Object.keys(attributes).map(attr => `${attr}="${attributes[attr]}"`).join(' ');
 };
+Fix 3
+--------
+const renderXMLToPdf = (data) => {
+    const stack = [{ data, key: "root" }];
+    const result = [];
+    const seen = new WeakSet(); // Prevents circular references
+
+    while (stack.length > 0) {
+        const { data, key } = stack.pop();
+
+        if (!data || seen.has(data)) continue; // Prevent duplicate processing
+        seen.add(data);
+
+        Object.keys(data).forEach((nodeKey) => {
+            if (nodeKey === '_attributes') return; // Ignore attributes at this stage
+
+            const element = data[nodeKey];
+
+            if (Array.isArray(element)) {
+                element.forEach((item) => stack.push({ data: { [nodeKey]: item }, key: nodeKey }));
+            } 
+            else if (typeof element === 'object' && '_text' in element) {
+                result.push(
+                    <Text key={nodeKey} style={styles.textProperty}>
+                        {'<'}
+                        <Text style={styles.textNodeColor}>{nodeKey}</Text>
+                        {element._attributes ? ` ${formatAttributes(element._attributes)}` : ''}
+                        {'>'}
+                        {element._text}
+                        {'</'}
+                        <Text style={styles.textNodeColor}>{nodeKey}</Text>
+                        {'>'}
+                    </Text>
+                );
+            } 
+            else if (typeof element === 'object') {
+                result.push(
+                    <View key={nodeKey} style={styles.viewParent}>
+                        <Text>
+                            {'<'}
+                            <Text style={styles.textNodeColor}>{nodeKey}</Text>
+                            {element._attributes ? ` ${formatAttributes(element._attributes)}` : ''}
+                            {'>'}
+                        </Text>
+                        {stack.push({ data: element, key: nodeKey })} 
+                        <Text>
+                            {'</'}
+                            <Text style={styles.textNodeColor}>{nodeKey}</Text>
+                            {'>'}
+                        </Text>
+                    </View>
+                );
+            }
+        });
+    }
+
+    return result;
+};
+
+// Function to format attributes safely
+const formatAttributes = (attributes) => {
+    return Object.keys(attributes).map(attr => `${attr}="${attributes[attr]}"`).join(' ');
+};
