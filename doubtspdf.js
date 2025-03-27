@@ -285,4 +285,65 @@ Fixes 1
 const formatAttributes = (attributes) => {
     return Object.keys(attributes).map(attr => `${attr}="${attributes[attr]}"`).join(' ');
 };
+Fix 2
+_-_------------
+const renderXMLToPdf = (data) => {
+    const stack = [{ data, depth: 0 }];
+    const result = [];
 
+    while (stack.length > 0) {
+        const { data, depth } = stack.pop();
+
+        if (!data || depth > 1000) continue; // Prevents excessive depth processing
+
+        Object.keys(data).forEach((key) => {
+            if (key === '_attributes') return; // Ignore _attributes key
+
+            const element = data[key];
+
+            // Handle arrays properly
+            if (Array.isArray(element)) {
+                element.forEach((item) => stack.push({ data: { [key]: item }, depth: depth + 1 }));
+            }
+            // Handle elements with text content
+            else if (typeof element === 'object' && '_text' in element) {
+                result.push(
+                    <Text key={key} style={styles.textProperty}>
+                        {'<'}
+                        <Text style={styles.textNodeColor}>{key}</Text>
+                        {has(element, '_attributes') ? ` ${formatAttributes(element._attributes)}` : ''}
+                        {'>'}
+                        {element._text}
+                        {'</'}
+                        <Text style={styles.textNodeColor}>{key}</Text>
+                        {'>'}
+                    </Text>
+                );
+            } else if (typeof element === 'object') {
+                result.push(
+                    <View key={key} style={styles.viewParent}>
+                        <Text>
+                            {'<'}
+                            <Text style={styles.textNodeColor}>{key}</Text>
+                            {has(element, '_attributes') ? ` ${formatAttributes(element._attributes)}` : ''}
+                            {'>'}
+                        </Text>
+                        {stack.push({ data: element, depth: depth + 1 })}
+                        <Text>
+                            {'</'}
+                            <Text style={styles.textNodeColor}>{key}</Text>
+                            {'>'}
+                        </Text>
+                    </View>
+                );
+            }
+        });
+    }
+
+    return result;
+};
+
+// Function to format attributes
+const formatAttributes = (attributes) => {
+    return Object.keys(attributes).map(attr => `${attr}="${attributes[attr]}"`).join(' ');
+};
