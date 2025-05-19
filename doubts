@@ -1022,3 +1022,19 @@ module.exports = function override(config, env) {
 
     return config
 }
+
+     bankChargesAmt : Yup.number()
+                                    .typeError('Amount must be a number')
+                                    .nullable()
+                                    .when('bankChargesCurrency', {
+                                        is : (bankChargesCurrency) => !!bankChargesCurrency,
+                                        then: (schema) => schema.required('Required'),
+                                        otherwise: (schema) => schema.notRequired()
+                                    }),
+                    bankChargesCurrency: Yup.string()
+                                .nullable()
+                                .when('bankChargesAmt', {
+                                is: (bankChargesAmt) => bankChargesAmt !== null && bankChargesAmt !== undefined && bankChargesAmt !== '',
+                                then: (schema) => schema.required('Currency is required'),
+                                otherwise: (schema) => schema.notRequired(),
+                                }),
