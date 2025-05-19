@@ -61,3 +61,75 @@ Yup.object().shape({
                         })
                     }
                 )
+
+answer
+--------------------
+Yup.object().shape({
+  creditReferenceNo: Yup.string()
+    .required("Credit Reference Number is required")
+    .matches(
+      /^(?!.* {2})[a-zA-Z0-9,@\\/().#&+!, -]+$/,
+      'Alpha numerics and special characters - / , ( ) # & @ . + ! , single quotes, and single space are allowed'
+    ),
+  creditedAmt: Yup.string().when('status', {
+    is: 'approve',
+    then: (schema) => schema.required('Required'),
+    otherwise: (schema) => schema.optional().nullable(),
+  }),
+  creditedCurrency: Yup.string().when('status', {
+    is: 'approve',
+    then: (schema) => schema.required('Required'),
+    otherwise: (schema) => schema.optional().nullable(),
+  }),
+  creditedDate: Yup.string().when('status', {
+    is: 'approve',
+    then: (schema) => schema.required('Date Credited is required'),
+    otherwise: (schema) => schema.optional().nullable(),
+  }),
+  bankChargesAmt: Yup.number().nullable(),
+  bankChargesCurrency: Yup.string().nullable(),
+}).test(
+  'bankCharges-conditional-validation',
+  'Invalid bank charges input',
+  function (values) {
+    const { bankChargesAmt, bankChargesCurrency, creditedAmt } = values;
+
+    const amtPresent =
+      bankChargesAmt !== null &&
+      bankChargesAmt !== undefined &&
+      bankChargesAmt !== '';
+    const currencyPresent = !!bankChargesCurrency;
+
+    // Check if bankChargesAmt is zero
+    if (amtPresent && Number(bankChargesAmt) === 0) {
+      return this.createError({
+        path: 'bankChargesAmt',
+        message: "Amount can't be zero",
+      });
+    }
+
+    // Check if creditedAmt is zero
+    if (
+      creditedAmt !== null &&
+      creditedAmt !== undefined &&
+      creditedAmt !== '' &&
+      Number(creditedAmt) === 0
+    ) {
+      return this.createError({
+        path: 'creditedAmt',
+        message: "Amount can't be zero",
+      });
+    }
+
+    // Validate both bankCharges fields together
+    if ((amtPresent && currencyPresent) || (!amtPresent && !currencyPresent)) {
+      return true;
+    }
+
+    return this.createError({
+      path: amtPresent ? 'bankChargesCurrency' : 'bankChargesAmt',
+      message: 'Required',
+    });
+  }
+);
+
