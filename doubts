@@ -1,136 +1,31 @@
-Yup.object().shape({
-                    creditReferenceNo : Yup.string().required("Credit Reference Number is required")
-                    .matches(/^(?!.* {2})[a-zA-Z0-9,@\\/().#&+!, -]+$/, 'Alpha numerics and Special characters are -/,()#&@.+!, single quotes and single space allowed'),
-                    creditedAmt : Yup.string()
-                                .when('status', {
-                                    is: 'approve',
-                                    then: (schema) => schema.required('Required'),
-                                    otherwise: (schema) => 
-                                    schema.optional().nullable()
-                                }),
-                                // .test('not-zero', 'Amount cann\'t be zero', function(value) {
-                                //     const { status } = this.parent;
-                                //     if(status === 'approve') {
-                                //         return value !== '0' && value !== '0.00' && value !== '00.00'
-                                //     }
-                                //     return true
-                                // }),
-                    creditedCurrency : Yup.string()
-                                .when('status', {
-                                    is: 'approve',
-                                    then: (schema) => schema.required('Required'),
-                                    otherwise: (schema) => schema.optional().nullable()
-                                }),
-                    creditedDate : Yup.string()
-                                    .when('status', {
-                                        is: 'approve',
-                                        then: (schema) => schema.required('Date Credited is required'),
-                                        otherwise: (schema) => schema.optional().nullable()
-                                    }),
-                    bankChargesAmt: Yup.number()
-                                    .nullable(),
-                    bankChargesCurrency: Yup.string().nullable()    
-                }).test(
-                      'bankCharges-conditional-validation',
-                      'Amount and Currency must both be provided' ,
-                      function (values) {
-                        const {bankChargesAmt, bankChargesCurrency, creditedAmt} = values;
-                        const amtPresent = bankChargesAmt !== null && bankChargesAmt !== undefined && bankChargesAmt !== '';
-                        const currencyPresent = !!bankChargesCurrency;
-
-                        if(amtPresent && Number(bankChargesAmt) === 0) {
-                            return this.createError({
-                                path: 'bankChargesAmt',
-                                message: 'Amount cann\'t be zero'
-                            })
-                        }
-
-                        if(!isEmpty(creditedAmt) && Number(creditedAmt) === 0) {
-                            return this.createError({
-                                path: 'creditedAmt',
-                                message: 'Amount cann\'t be zero'
-                            })
-                        }
-
-                        if((amtPresent && currencyPresent) || (!amtPresent && !currencyPresent)){
-                            return true;
-                        }
-                        return this.createError({
-                            path: amtPresent ? 'bankChargesCurrency' : 'bankChargesAmt',
-                            message : 'Required'
-                        })
-                    }
-                )
-
-answer
---------------------
-Yup.object().shape({
-  creditReferenceNo: Yup.string()
-    .required("Credit Reference Number is required")
-    .matches(
-      /^(?!.* {2})[a-zA-Z0-9,@\\/().#&+!, -]+$/,
-      'Alpha numerics and special characters - / , ( ) # & @ . + ! , single quotes, and single space are allowed'
-    ),
-  creditedAmt: Yup.string().when('status', {
-    is: 'approve',
-    then: (schema) => schema.required('Required'),
-    otherwise: (schema) => schema.optional().nullable(),
-  }),
-  creditedCurrency: Yup.string().when('status', {
-    is: 'approve',
-    then: (schema) => schema.required('Required'),
-    otherwise: (schema) => schema.optional().nullable(),
-  }),
-  creditedDate: Yup.string().when('status', {
-    is: 'approve',
-    then: (schema) => schema.required('Date Credited is required'),
-    otherwise: (schema) => schema.optional().nullable(),
-  }),
-  bankChargesAmt: Yup.number().nullable(),
-  bankChargesCurrency: Yup.string().nullable(),
-}).test(
-  'bankCharges-conditional-validation',
-  'Invalid bank charges input',
-  function (values) {
-    const { bankChargesAmt, bankChargesCurrency, creditedAmt } = values;
-
-    const amtPresent =
-      bankChargesAmt !== null &&
-      bankChargesAmt !== undefined &&
-      bankChargesAmt !== '';
-    const currencyPresent = !!bankChargesCurrency;
-
-    // Check if bankChargesAmt is zero
-    if (amtPresent && Number(bankChargesAmt) === 0) {
-      return this.createError({
-        path: 'bankChargesAmt',
-        message: "Amount can't be zero",
-      });
+ const MXMTDocument = () => {
+        return (
+            <Document>
+                <Page size={'A4'} style={styles.page}>
+                    <View style={styles.section}>
+                        <Text>MT Message</Text>
+                        <Text>------------------</Text>
+                        <Text style={styles.mtText}>
+                            {mtMessage}
+                        </Text>
+                    </View>
+                </Page>
+            </Document>
+        )
     }
-
-    // Check if creditedAmt is zero
-    if (
-      creditedAmt !== null &&
-      creditedAmt !== undefined &&
-      creditedAmt !== '' &&
-      Number(creditedAmt) === 0
-    ) {
-      return this.createError({
-        path: 'creditedAmt',
-        message: "Amount can't be zero",
-      });
-    }
-
-    // Validate both bankCharges fields together
-    if ((amtPresent && currencyPresent) || (!amtPresent && !currencyPresent)) {
-      return true;
-    }
-
-    return this.createError({
-      path: amtPresent ? 'bankChargesCurrency' : 'bankChargesAmt',
-      message: 'Required',
-    });
-  }
-);
-
-/^[a-zA-Z0-9]+( [a-zA-Z0-9]+)*$/
+const styles = StyleSheet.create({
+    page: {
+        backgroundColor: "white",
+        color: "black",
+        padding: 20
+    },
+    section: {
+        marginTop: 20,
+        marginBottom: 10
+    },
+    mtText: {
+        fontSize: '10',
+        wordWrap: 'break-word', 
+        whiteSpace: 'pre-wrap'
+    },
+});
