@@ -1,31 +1,120 @@
- const MXMTDocument = () => {
-        return (
-            <Document>
-                <Page size={'A4'} style={styles.page}>
-                    <View style={styles.section}>
-                        <Text>MT Message</Text>
-                        <Text>------------------</Text>
-                        <Text style={styles.mtText}>
-                            {mtMessage}
-                        </Text>
-                    </View>
-                </Page>
-            </Document>
-        )
-    }
-const styles = StyleSheet.create({
-    page: {
-        backgroundColor: "white",
-        color: "black",
-        padding: 20
-    },
-    section: {
-        marginTop: 20,
-        marginBottom: 10
-    },
-    mtText: {
-        fontSize: '10',
-        wordWrap: 'break-word', 
-        whiteSpace: 'pre-wrap'
-    },
-});
+
+export const useStyles = makeStyles(() => ({
+  searchCriteria: {
+    width: '23%',
+    marginRight: '10px'
+  },
+  viewButtonStyle: {
+    padding: '5px 16px'
+  },
+  tableContainer: {
+    borderRadius: 1,
+    overflowY: 'auto'
+  }
+}))
+
+const ViewTransactionsMain = React.memo(function ViewTransactionsMain({ transType, enqType, scrollNeed = false,
+  searchFilter = { ...INITIAL_SEARCH_REQUEST }, refreshPage, switchActivated = null, tableHeaders = OUTCOMING_TABLE_HEADERS }) {
+
+  return (
+    <>
+      <LoadingViewer loading={isLoadingTxnDet}>
+        <Grid sx={scrollNeed ? { m: 0.5 } : { m: 0.5, width: '99.5%' }}>
+          <TableContainer sx={{ ...tableContainerStyle }}>
+            <Table
+              aria-labelledby='tableTitle'
+              size={'small'} sx={{ ...tableStyle }} >
+              <TableHead>
+                <TableRow key={'head'} sx={{ height: isMobileOnly ? '30px' : '50px' }}>
+                  {tableHeaders.map((headCell, index) => (
+                    <TableCell
+                      key={`key_${index}`}
+                      align={headCell.numeric === true ? 'right' : 'left'}
+                      padding={'normal'}
+                    >
+                      {
+                        headCell.label
+                      }
+                    </TableCell>))}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {
+                  transactionsList
+                  && transactionsList.enqTxn
+                  && transactionsList.enqTxn.map((row, index) => {
+                    return (
+                      <TableRow tabIndex={-1} key={index}>                
+                        <TableCell align="left">{row.debitBic}</TableCell>
+                        <TableCell align="left">{row.createdDt}</TableCell>
+                        <TableCell align="left">{row.updatedDt}</TableCell>
+                        
+                        <TableCell align='left'>
+                          <IconButton size='small' onClick={onHandleTransActionPopoverOpen}>
+                            <MoreHorizOutlined  fontSize='small' />
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })
+                }
+              </TableBody>
+            </Table>
+              <TransactionActionPopover openAction = {openTransActionPopover} 
+                onCloseAction = {onHandleTransActionPopoverClose} />
+          </TableContainer>
+        </Grid>
+      </LoadingViewer>
+    </>
+  )
+})
+export default ViewTransactionsMain
+
+TransactionActionPopover.js
+----------------------------------
+
+function TransactionActionPopover({ onCloseAction, openAction, locale }) {
+  const open = Boolean(openAction);
+  const id = open ? 'simple-popover' : undefined;
+  const handleClose = () => {
+    onCloseAction(null);
+  }
+ 
+  return (
+    <>
+      <Popover
+        id={id}
+        open={open}
+        anchorEl={openAction || null}
+        onClose={handleClose}
+        anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'center',
+          }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'center'
+        }}
+        sx={{ mt: 0.5, boxShadow: 2, borderRadius: 1 }}
+        disablePortal
+      >
+        <ListItemButton>
+          <ListItemText
+            primary={<Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '13px' }} >
+                <FormattedMessage id='viewTransactions.viewMessageDialog.viewMxMTMsg' defaultMessage={defaultLocales["viewTransactions.viewMessageDialog.viewMxMTMsg"]} />
+            </Typography>}
+          />
+        </ListItemButton>
+        <ListItemButton>
+          <ListItemText
+            primary={<Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '13px' }} >
+                <FormattedMessage id='viewTransactions.creditNotification.create' defaultMessage={defaultLocales["viewTransactions.creditNotification.create"]} />
+                </Typography>}
+          />
+        </ListItemButton>
+      </Popover>
+    </>
+  )
+
+};
+export default memo(TransactionActionPopover);
